@@ -2,10 +2,14 @@ import { createElement } from 'react'
 import { act, create, type ReactTestRenderer } from 'react-test-renderer'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const native = vi.hoisted(() => ({
-  os: 'ios' as 'ios' | 'android' | 'web',
-  addEventListener: vi.fn((_event: string, _handler: () => boolean) => ({ remove: vi.fn() }))
-}))
+const native = vi.hoisted(() => {
+  // Annotated rather than asserted: the literal alone narrows to 'ios' and the tests reassign it.
+  const platform: { os: 'ios' | 'android' | 'web' } = { os: 'ios' }
+  return {
+    platform,
+    addEventListener: vi.fn((_event: string, _handler: () => boolean) => ({ remove: vi.fn() }))
+  }
+})
 
 vi.mock('react-native', () => ({
   BackHandler: {
@@ -13,7 +17,7 @@ vi.mock('react-native', () => ({
       native.addEventListener(event, handler)
   },
   get Platform() {
-    return { OS: native.os }
+    return { OS: native.platform.os }
   }
 }))
 
@@ -41,7 +45,7 @@ function render(hasUnsavedDraft: boolean, leave: () => void): ReactTestRenderer 
 }
 
 beforeEach(() => {
-  native.os = 'ios'
+  native.platform.os = 'ios'
   native.addEventListener.mockClear()
   held.back = null
 })
@@ -120,7 +124,7 @@ describe('leaving the file preview', () => {
   })
 
   it('never arms it on the web, where it is inert and says so on the console', () => {
-    native.os = 'web'
+    native.platform.os = 'web'
     render(false, vi.fn())
     expect(native.addEventListener).not.toHaveBeenCalled()
   })

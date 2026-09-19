@@ -32,31 +32,27 @@ export function useMobileFilePreviewBack(options: {
   leave: () => void
 }): MobileFilePreviewBack {
   const { hasUnsavedDraft, leave } = options
-  const [confirmingDiscard, setConfirmingDiscard] = useState(false)
+  const [asking, setAsking] = useState(false)
+
+  // Derived rather than cleared in an effect: a draft saved or reverted while the prompt is up
+  // leaves nothing to discard, and an effect that answered that would paint one frame still asking.
+  const confirmingDiscard = asking && hasUnsavedDraft
 
   const requestBack = useCallback(() => {
     if (hasUnsavedDraft) {
-      setConfirmingDiscard(true)
+      setAsking(true)
       return true
     }
     leave()
     return true
   }, [hasUnsavedDraft, leave])
 
-  const stay = useCallback(() => setConfirmingDiscard(false), [])
+  const stay = useCallback(() => setAsking(false), [])
 
   const discard = useCallback(() => {
-    setConfirmingDiscard(false)
+    setAsking(false)
     leave()
   }, [leave])
-
-  // A draft saved or reverted while the prompt is up leaves nothing to discard, so the question
-  // goes rather than staying on screen over an answer that is no longer true.
-  useEffect(() => {
-    if (!hasUnsavedDraft) {
-      setConfirmingDiscard(false)
-    }
-  }, [hasUnsavedDraft])
 
   useEffect(() => {
     if (Platform.OS === 'web') {
