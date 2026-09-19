@@ -1,5 +1,6 @@
 import { useLocalSearchParams } from 'expo-router'
 import { MobileFileExplorerPanel } from '../../../../src/files/MobileFileExplorerPanel'
+import { mobileFileShellRoute } from '../../../../src/files/mobile-file-shell-route'
 import { MobileWebShellScreen } from '../../../../src/mobile-web-shell/MobileWebShellScreen'
 import { useMobileWebShellEnabled } from '../../../../src/mobile-web-shell/use-mobile-web-shell-enabled'
 
@@ -25,17 +26,16 @@ export default function MobileFileExplorerScreen() {
     <MobileFileExplorerPanel hostId={hostId} worktreeId={worktreeId} name={name} embedded={false} />
   )
 
-  if (enabled !== true || !hostId || !worktreeId) {
+  const route =
+    hostId && worktreeId
+      ? mobileFileShellRoute({
+          pathname: `/h/${encodeURIComponent(hostId)}/files/${encodeURIComponent(worktreeId)}`,
+          ...(name === undefined ? {} : { params: { name } })
+        })
+      : null
+
+  if (enabled !== true || !hostId || route === null) {
     return native
   }
-  return (
-    <MobileWebShellScreen
-      hostId={hostId}
-      route={{
-        pathname: `/h/${encodeURIComponent(hostId)}/files/${encodeURIComponent(worktreeId)}`,
-        ...(name === undefined ? {} : { params: { name } })
-      }}
-      fallback={native}
-    />
-  )
+  return <MobileWebShellScreen hostId={hostId} route={route} fallback={native} />
 }

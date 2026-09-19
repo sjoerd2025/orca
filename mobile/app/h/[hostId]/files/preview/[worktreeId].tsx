@@ -4,6 +4,7 @@ import {
   mobileFilePreviewShellParams,
   normalizeMobileFilePreviewRouteParams
 } from '../../../../../src/files/mobile-file-preview-route'
+import { mobileFileShellRoute } from '../../../../../src/files/mobile-file-shell-route'
 import { MobileWebShellScreen } from '../../../../../src/mobile-web-shell/MobileWebShellScreen'
 import { useMobileWebShellEnabled } from '../../../../../src/mobile-web-shell/use-mobile-web-shell-enabled'
 
@@ -40,18 +41,17 @@ export default function MobileFilePreviewRoute() {
   const enabled = useMobileWebShellEnabled()
   const native = <MobileFilePreviewScreen route={route} />
 
-  if (enabled !== true || !route.ok) {
+  const shellRoute = route.ok
+    ? mobileFileShellRoute({
+        pathname: `/h/${encodeURIComponent(route.params.hostId)}/files/preview/${encodeURIComponent(
+          route.params.worktreeId
+        )}`,
+        params: mobileFilePreviewShellParams(route.params)
+      })
+    : null
+
+  if (enabled !== true || !route.ok || shellRoute === null) {
     return native
   }
-  const { hostId, worktreeId } = route.params
-  return (
-    <MobileWebShellScreen
-      hostId={hostId}
-      route={{
-        pathname: `/h/${encodeURIComponent(hostId)}/files/preview/${encodeURIComponent(worktreeId)}`,
-        params: mobileFilePreviewShellParams(route.params)
-      }}
-      fallback={native}
-    />
-  )
+  return <MobileWebShellScreen hostId={route.params.hostId} route={shellRoute} fallback={native} />
 }
