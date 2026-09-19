@@ -31,9 +31,12 @@ export const MOBILE_WEB_PAGE_ROUTES = [
   },
   // The file explorer. `navigate` because its Back pops the native stack, and because a row opens
   // the preview beside it, which is a page route the handoff keeps inside the document. `storage`
-  // for the shared components the host layout renders above it. No `externalLink`: the only thing
-  // in this closure that opens a URL is the protocol wall in the shared layout, which every page
-  // route reaches and which the worktree list is granted nothing for either.
+  // for the shared components the host layout renders above it. No `externalLink`: nothing the
+  // explorer itself renders opens a URL. The two openers in this closure are both the shared
+  // layout's — the protocol wall, and the New Workspace source field the sidebar renders on a wide
+  // layout — and every `/h` route reaches both, `/h/[hostId]` included, which is granted no
+  // `externalLink` either. A tablet tap on that field is therefore dead on any of them: a
+  // pre-existing gap this route neither widens nor fixes.
   { pathname: '/h/[hostId]/files/[worktreeId]', grants: ['navigate', 'storage'] },
   // The file preview. Same two, plus `externalLink`: a Markdown preview renders links, and
   // `MobileMarkdown` opens them through the platform seam. That is a consumer inside the domain

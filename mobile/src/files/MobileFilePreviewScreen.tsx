@@ -13,8 +13,8 @@ import {
   type MobileFilePreviewSource,
   type MobileFilePreviewResult
 } from './mobile-file-preview-request'
+import { ConfirmModal } from '../components/ConfirmModal'
 import { MobileFilePreviewBody } from './MobileFilePreviewBody'
-import { MobileFilePreviewDiscardPrompt } from './MobileFilePreviewDiscardPrompt'
 import {
   displayNameFromPreviewPath,
   type MobileFilePreviewRouteState
@@ -258,9 +258,6 @@ export function MobileFilePreviewScreen({ route }: Props) {
             </Pressable>
           ) : null}
         </View>
-        {confirmingDiscard ? (
-          <MobileFilePreviewDiscardPrompt onStay={stay} onDiscard={discard} />
-        ) : null}
       </SafeAreaView>
       <MobileFilePreviewBody
         preview={preview}
@@ -277,6 +274,16 @@ export function MobileFilePreviewScreen({ route }: Props) {
           setPreview({ status: 'error', message: 'Unable to load preview', reconnect: false })
         }
         onRetry={retry}
+      />
+      <ConfirmModal
+        visible={confirmingDiscard}
+        title="Discard changes?"
+        message="Unsaved edits will be lost."
+        confirmLabel="Discard"
+        cancelLabel="Stay"
+        destructive
+        onConfirm={discard}
+        onCancel={stay}
       />
     </View>
   )

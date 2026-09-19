@@ -43,9 +43,11 @@ describe('the route the files screens hand the shell', () => {
   it('is nothing when a worktree id is not a segment the page will route', () => {
     // The C1.8 class: `..` survives encodeURIComponent, and the page resolves a dot segment out of
     // the `/h/` prefix it is supposed to stay inside.
-    expect(
-      mobileFileShellRoute({ pathname: '/h/host-1/files/..', params: { name: 'Files' } })
-    ).toBeNull()
+    const route = { pathname: '/h/host-1/files/..', params: { name: 'Files' } }
+    // The schema first, as the length case does: without it a `null` here would also be what a
+    // guard that refused everything produces.
+    expect(BridgeInitRouteSchema.safeParse(route).success).toBe(false)
+    expect(mobileFileShellRoute(route)).toBeNull()
   })
 
   it('keeps a path with a slash, a space and a dot segment, which are params and not segments', () => {

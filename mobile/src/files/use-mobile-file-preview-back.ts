@@ -13,13 +13,15 @@ export type MobileFilePreviewBack = {
 /**
  * Leaving the preview, and the one question that can stop it.
  *
- * The prompt is the screen's own rather than `Alert.alert`, because React Native Web's `Alert` is
+ * The prompt is a `ConfirmModal` rather than `Alert.alert`, because React Native Web's `Alert` is
  * `static alert() {}` — a silent no-op. Inside the shell's page that turned Back with an unsaved
  * draft into a button that did nothing at all: no prompt, and no navigation either.
  *
- * It is also not a `ConfirmModal`, which every other confirm here is: that one is a `BottomDrawer`,
- * and C1.9 has Reanimated's animated styles never reaching the DOM node on WKWebView, so on iOS in
- * the page the drawer stays parked off-screen and Back would be dead in a second way.
+ * `ConfirmModal` is what every other confirm in this app uses, and it keeps the modal semantics the
+ * native screen had before the page existed. It is a `BottomDrawer`, which C3 first wrote around
+ * because C1.9 had Reanimated's animated styles never reaching the DOM node on WKWebView; C1.10
+ * (`b7c06900e2`) fixed that by giving the mapper hooks a dependency array, and the drawer render
+ * check now holds it on WebKit as well as Chromium.
  *
  * Hardware back is registered natively only. React Native Web's `BackHandler.addEventListener`
  * logs "BackHandler is not supported on web and should not be used." and returns an inert

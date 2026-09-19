@@ -12,19 +12,21 @@ import { mobileFileShellRoute } from './mobile-file-shell-route'
  * Every shape of a real file path that the bridge's route vocabulary would refuse as a segment.
  *
  * None of them is refused, and that is the design: the pathname spells only `hostId` and
- * `worktreeId`, and the path itself is a param, where `URLSearchParams` percent-encodes `/`, the
- * space, `#` and the dot segment before any pattern sees them. This is the test that says so for
- * each one rather than for a representative.
+ * `worktreeId`, and the path itself is a param. This is the test that says so for each one rather
+ * than for a representative.
+ *
+ * What the percent-encoding is actually load-bearing for is narrower than "all seven", and the two
+ * lists below are that split rather than a claim over the whole set. The query half of
+ * `BRIDGE_ROUTE_HREF_PATTERN` is `[^#\s]*`, so a `/`, a dot segment and non-ASCII all survive it
+ * verbatim and read back out of `URLSearchParams` unchanged; only whitespace (which the pattern
+ * refuses), a `#` (which would end the href and start a fragment) and an already-percent-encoded
+ * `%` (which decodes to something else on the way back) need the encoder. Hand-joining the query
+ * in `stringifyRouteHref` reds exactly the three below and leaves the four beside them green,
+ * which is why this file pins the two groups instead of asserting one rule over seven paths.
  */
-const HAZARD_PATHS = [
-  'docs/readme.md',
-  'src/my file.ts',
-  '../etc/passwd',
-  'a%2Fb.ts',
-  'a#b.ts',
-  'docs/日本語.md',
-  '/logs/run.txt'
-]
+const ENCODING_LOAD_BEARING = ['src/my file.ts', 'a%2Fb.ts', 'a#b.ts']
+const ENCODING_NEUTRAL = ['docs/readme.md', '../etc/passwd', 'docs/日本語.md', '/logs/run.txt']
+const HAZARD_PATHS = [...ENCODING_LOAD_BEARING, ...ENCODING_NEUTRAL]
 
 /** The path as the other side reads it back out of the query it arrived in. */
 function relativePathFromHref(href: string): string | null {
@@ -62,6 +64,30 @@ describe.each(HAZARD_PATHS)('a file path the route carries: %s', (relativePath) 
     )
     expect(BRIDGE_ROUTE_HREF_PATTERN.test(href)).toBe(true)
     expect(relativePathFromHref(href)).toBe(relativePath)
+  })
+})
+
+/**
+ * Which of the seven the encoder is the only thing standing between and a refused or altered href.
+ *
+ * Asserted by building the href the unencoded way and reading what happens to it, so the split is
+ * pinned by behaviour rather than by a comment: move a path between the two lists and this fails.
+ */
+describe('what the percent-encoding is load-bearing for', () => {
+  const rawHref = (relativePath: string) =>
+    `/h/host-1/files/preview/wt-1?relativePath=${relativePath}&source=worktree`
+
+  it.each(ENCODING_NEUTRAL)('survives the query unencoded: %s', (relativePath) => {
+    const href = rawHref(relativePath)
+    expect(BRIDGE_ROUTE_HREF_PATTERN.test(href)).toBe(true)
+    expect(relativePathFromHref(href)).toBe(relativePath)
+  })
+
+  it.each(ENCODING_LOAD_BEARING)('does not survive the query unencoded: %s', (relativePath) => {
+    const href = rawHref(relativePath)
+    const refused = !BRIDGE_ROUTE_HREF_PATTERN.test(href)
+    const altered = relativePathFromHref(href) !== relativePath
+    expect(refused || altered).toBe(true)
   })
 })
 
