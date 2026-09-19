@@ -19,10 +19,15 @@ import type { PageClosurePins } from './page-closure'
  * shell's own families are not the page's. The family set is the same 70 once those two are
  * removed, so the tell is what the extra modules are, not which goldens they reach.
  *
- * **C1's 22 families are inherited verbatim, not re-derived.** C2's rule does not reproduce them —
- * it disagrees on 10 of the 103 — so the spread below is the derivation for those, and the rule
- * decides only the 48 families this domain adds. C5's closure pins those same 22 and no family C2
- * reaches beyond them, so a golden pinned twice is pinned once here.
+ * **C1's 22 families are inherited verbatim, not re-derived.** Run over the 103 inherited pins the
+ * rule disagrees with 13 of them: all 7 in `tasks.smart-source-search`, a family that is
+ * `params-undefined` throughout but is C1's own and so absent from the five the rule carries; all 5
+ * in `host-worktree-refresh`, whose `write-ordinal` and `result-absent-stream-release` are shapes
+ * the rule does not model at all; and `worktree-catalog-snapshot`, which the rule taints
+ * `result-absent-settlement` because a sibling scenario in its family scripts an absent result. So
+ * the spread below is the derivation for those, and the rule decides only the 48 families this
+ * domain adds. C5's closure pins those same 22 and no family C2 reaches beyond them, so a golden
+ * pinned twice is pinned once here.
  *
  * **What 266 certified does not say.** Six of the 70 families have no byte-identical golden at all
  * — `tasks.item-checks-files`, `tasks.project-row-files-merge`, `tasks.provider-load`,

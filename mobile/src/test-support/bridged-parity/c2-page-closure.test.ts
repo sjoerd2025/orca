@@ -30,6 +30,15 @@ function asPinned(): Map<string, PageClosureObservation> {
 }
 
 describe('the C2 page closure', () => {
+  /**
+   * The census reads the committed table, and does not re-derive the closure.
+   *
+   * Nothing here or in the gate runs esbuild or maps a scenario's `sites` back to the module graph,
+   * so this fixes how many families the table may hold, not which families belong in it. A golden
+   * arriving in a family already pinned is caught, by `pageClosureDrift` and by this count. A new
+   * *family* entering the closure — a scenario recorded at a site the route newly imports — is
+   * invisible until someone re-derives the closure by hand, as C1's and C5's pins are too.
+   */
   it('is the census the design named: 70 families, 266 goldens', () => {
     const goldens = Object.values(C2_PAGE_CLOSURE).flatMap((family) => Object.keys(family))
     expect({ families: Object.keys(C2_PAGE_CLOSURE).length, goldens: goldens.length }).toEqual({
@@ -59,8 +68,10 @@ describe('the C2 page closure', () => {
 
   it("inherits C1's families whole, with the verdicts C1 committed", () => {
     // Not "the same families": the same goldens in them, at the same verdicts. C2's own rule does
-    // not reproduce these — it disagrees on 10 of the 103 — so inheritance is the derivation, and
-    // this is what says the inheritance happened rather than a re-derivation that looked close.
+    // not reproduce these — measured, it disagrees on 13 of the 103, being `tasks.smart-source-
+    // search` 7, `host-worktree-refresh` 5 and `worktree-catalog-snapshot` 1 — so inheritance is
+    // the derivation, and this is what says it happened rather than a re-derivation that looked
+    // close.
     for (const [family, pinned] of Object.entries(C1_PAGE_CLOSURE)) {
       expect(C2_PAGE_CLOSURE[family], family).toEqual(pinned)
     }
