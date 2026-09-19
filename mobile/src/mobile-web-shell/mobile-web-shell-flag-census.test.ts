@@ -11,10 +11,15 @@ import { describe, expect, it } from 'vitest'
 const MOBILE_ROOT = join(import.meta.dirname, '..', '..')
 const FLAG_KEY = 'orca:mobileWebShellEnabled'
 const DEFINITION = 'src/storage/preferences.ts'
-/** The one product reader. Both routes ask it, so the two below stay the whole census. */
+/** The one product reader. Every route that can stand the shell in for a screen asks it, and the
+ *  list below is the whole census: one entry per screen a domain series has moved to the page. */
 const FLAG_HOOK = 'src/mobile-web-shell/use-mobile-web-shell-enabled.ts'
 const ROUTE = 'app/h/[hostId]/web.tsx'
 const HOST_ROUTE = 'app/h/[hostId]/index.tsx'
+const FILES_ROUTES = [
+  'app/h/[hostId]/files/[worktreeId].tsx',
+  'app/h/[hostId]/files/preview/[worktreeId].tsx'
+]
 const DEVELOPER_ROW = 'src/diagnostics/mobile-web-shell-dev-row.tsx'
 /** Every tree that ships in the app bundle, with the floor each must clear. `modules` is two files,
  *  but it is where the native view lives and so the easiest place for a second reader to hide. */
@@ -54,6 +59,9 @@ describe('who touches the hybrid shell flag', () => {
     expect(paths).toContain(FLAG_HOOK)
     expect(paths).toContain(ROUTE)
     expect(paths).toContain(HOST_ROUTE)
+    for (const route of FILES_ROUTES) {
+      expect(paths).toContain(route)
+    }
     expect(paths).toContain(DEVELOPER_ROW)
     expect(paths).toContain(SHELL_VIEW)
     const trees = Object.keys(TREES)
@@ -73,11 +81,12 @@ describe('who touches the hybrid shell flag', () => {
     )
   })
 
-  it('reaches the two routes through that hook and no others', () => {
-    // The host route is the flip switch, so the flag now decides what the main screen renders. A
-    // third route here would be a third place a dark feature could turn itself on.
+  it('reaches only the routes a domain series has moved, through that hook', () => {
+    // The host route is the flip switch, so the flag decides what the main screen renders; the two
+    // files routes are C3's. Every entry is a screen with a native fallback behind it, and one that
+    // is not on this list is a place a dark feature could turn itself on.
     expect(filesContaining('useMobileWebShellEnabled')).toEqual(
-      [FLAG_HOOK, HOST_ROUTE, ROUTE].sort()
+      [FLAG_HOOK, HOST_ROUTE, ROUTE, ...FILES_ROUTES].sort()
     )
   })
 
