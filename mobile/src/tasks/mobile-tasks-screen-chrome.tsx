@@ -51,7 +51,12 @@ export function renderMobileTasksStatusBar(model: ConnectionPresentationModel) {
   } = model
   return (
     <View style={styles.statusBar}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
+      <Pressable
+        style={styles.backButton}
+        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+      >
         <ChevronLeft size={22} color={colors.textPrimary} />
       </Pressable>
       <View style={styles.titleWrap}>
