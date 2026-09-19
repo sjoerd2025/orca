@@ -94,6 +94,11 @@ describe('the page routes the manifest declares', () => {
       {
         pathname: '/h/[hostId]/tasks',
         grants: ['navigate', 'storage', 'externalLink', 'native.clipboard.write']
+      },
+      { pathname: '/h/[hostId]/files/[worktreeId]', grants: ['navigate', 'storage'] },
+      {
+        pathname: '/h/[hostId]/files/preview/[worktreeId]',
+        grants: ['navigate', 'storage', 'externalLink']
       }
     ])
   })
@@ -120,6 +125,11 @@ describe('the page routes the manifest declares', () => {
           {
             pathname: '/h/[hostId]/tasks',
             grants: ['navigate', 'storage', 'externalLink', 'native.clipboard.write']
+          },
+          { pathname: '/h/[hostId]/files/[worktreeId]', grants: ['navigate', 'storage'] },
+          {
+            pathname: '/h/[hostId]/files/preview/[worktreeId]',
+            grants: ['navigate', 'storage', 'externalLink']
           }
         ])
         // The routes are derived from the same tree the script is built from, so the assets
