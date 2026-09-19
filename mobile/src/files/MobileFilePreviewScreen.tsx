@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, BackHandler, Pressable, Text, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
 import { ChevronLeft, Save } from 'lucide-react-native'
+import { useRouteHandoff } from '../navigation/route-handoff'
 import { getWorktreeLabel } from '../session/worktree-label'
 import { colors, spacing } from '../theme/mobile-theme'
 import { useForceReconnect, useHostClient } from '../transport/client-context'
@@ -32,7 +32,7 @@ type Props = {
 }
 
 export function MobileFilePreviewScreen({ route }: Props) {
-  const router = useRouter()
+  const router = useRouteHandoff()
   const previewParams = route.ok ? route.params : null
   const { client, state: connState } = useHostClient(previewParams?.hostId)
   const forceReconnect = useForceReconnect()
