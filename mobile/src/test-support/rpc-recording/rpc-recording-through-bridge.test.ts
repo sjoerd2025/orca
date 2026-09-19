@@ -21,6 +21,7 @@ import { C5_PAGE_CLOSURE } from '../bridged-parity/c5-page-closure'
 import { C1_PAGE_CLOSURE } from '../bridged-parity/c1-page-closure'
 import {
   pageClosureDrift,
+  pageClosureRunTotals,
   pageClosureTotals,
   readPageClosure,
   type BridgedParityVerdict,
@@ -376,11 +377,9 @@ describe.skipIf(process.env[BRIDGED_PARITY_FLAG] === BRIDGED_PARITY_OFF)(
       // The run's own totals over this closure, against the pin's. A per-id walk agrees with a
       // table that is wrong the same way twice; the counts are what caught exactly that while the
       // file was being derived.
-      const ran: Record<string, number> = {}
-      for (const [, seen] of [...observed].filter(([, seen]) => seen.family in C5_PAGE_CLOSURE)) {
-        ran[seen.verdict] = (ran[seen.verdict] ?? 0) + 1
-      }
-      expect(ran).toEqual(pageClosureTotals(C5_PAGE_CLOSURE))
+      expect(pageClosureRunTotals(C5_PAGE_CLOSURE, observed)).toEqual(
+        pageClosureTotals(C5_PAGE_CLOSURE)
+      )
     })
   }
 )
