@@ -490,6 +490,44 @@ describeRender('the Route A page in a real browser', () => {
     expect(text).not.toContain(UNMATCHED)
   }, 60_000)
 
+  // Both files routes reach OrcaMobileWebShellView from their native file, whose module calls
+  // requireNativeViewManager at import and throws in a browser. The manifest defers every route
+  // behind `import()`, so that throw is invisible until the page opens this route — which is why
+  // it needs a `.web.tsx` sibling and why proving it costs a render of the route itself.
+  it('mounts the file explorer, which its native route module cannot do', async () => {
+    const worktreeRoute = `${HOST_ROUTE}/files/worktree-a`
+    const { errors, cspErrors, text } = await render(worktreeRoute, 'Files', {
+      shellRoute: { pathname: worktreeRoute, params: { name: 'Example Worktree' } }
+    })
+    expect(cspErrors).toEqual([])
+    expect(errors).toEqual([])
+    expect(text).toContain('Files')
+    expect(text).toContain('Example Worktree')
+    expect(text).not.toContain(UNMATCHED)
+  }, 60_000)
+
+  it('mounts the file preview, reading the file path out of a param and not a segment', async () => {
+    const previewRoute = `${HOST_ROUTE}/files/preview/worktree-a`
+    const { errors, cspErrors, text, url } = await render(previewRoute, 'readme.md', {
+      shellRoute: {
+        pathname: previewRoute,
+        params: { relativePath: 'docs/my notes/readme.md', source: 'worktree' }
+      }
+    })
+    expect(cspErrors).toEqual([])
+    // React Native Web's own refusal, and the whole of the gap: the screen's hardware-back guard
+    // never arms here, so Android back inside the page pops without the unsaved-draft prompt. Named
+    // rather than filtered out, so closing it is a change to this line.
+    expect(errors).toEqual([
+      'console.error: BackHandler is not supported on web and should not be used.'
+    ])
+    // The title is the last segment of the path param, so this is also the proof the param
+    // survived the round trip through `URLSearchParams` that `/` and the space go through.
+    expect(text).toContain('readme.md')
+    expect(url).toBe(`${previewRoute}?relativePath=docs%2Fmy+notes%2Freadme.md&source=worktree`)
+    expect(text).not.toContain(UNMATCHED)
+  }, 60_000)
+
   it('renders the unmatched route rather than crashing on a path with no module', async () => {
     const { errors, cspErrors, text } = await render(`${HOST_ROUTE}/not-a-route`, UNMATCHED)
     expect(cspErrors).toEqual([])
