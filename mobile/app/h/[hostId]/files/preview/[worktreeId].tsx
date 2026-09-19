@@ -55,6 +55,12 @@ export default function MobileFilePreviewRoute() {
   }
   // Keyed on the route, for the reason the explorer beside it is: a host captures the grants its
   // session was opened with, so only a remount drops the bridge the previous route opened.
+  //
+  // The pathname alone, not the params: every caller in this tree pushes rather than setting params
+  // on the route it is already on (`navigateToMobileFilePreview` is a `router.push`), so a file
+  // change arrives as a new entry and the pathname's worktree segment moves with it. A caller that
+  // swapped `relativePath` in place would keep the session, which is correct — same host, same
+  // grants — and the screen reloads the preview from the param either way.
   return (
     <MobileWebShellScreen
       key={shellRoute.pathname}

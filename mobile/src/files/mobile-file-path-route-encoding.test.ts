@@ -15,17 +15,40 @@ import { mobileFileShellRoute } from './mobile-file-shell-route'
  * `worktreeId`, and the path itself is a param. This is the test that says so for each one rather
  * than for a representative.
  *
- * What the percent-encoding is actually load-bearing for is narrower than "all seven", and the two
- * lists below are that split rather than a claim over the whole set. The query half of
- * `BRIDGE_ROUTE_HREF_PATTERN` is `[^#\s]*`, so a `/`, a dot segment and non-ASCII all survive it
- * verbatim and read back out of `URLSearchParams` unchanged; only whitespace (which the pattern
- * refuses), a `#` (which would end the href and start a fragment) and an already-percent-encoded
- * `%` (which decodes to something else on the way back) need the encoder. Hand-joining the query
- * in `stringifyRouteHref` reds exactly the three below and leaves the four beside them green,
- * which is why this file pins the two groups instead of asserting one rule over seven paths.
+ * What the percent-encoding is load-bearing for is narrower than "every path", and the two lists
+ * below are that split rather than a claim over the whole set. Two different rules decide it, and
+ * neither is about paths:
+ *
+ *  - the query half of `BRIDGE_ROUTE_HREF_PATTERN` is `[^#\s]*`, so it refuses whitespace of any
+ *    kind and a `#`, and admits everything else verbatim;
+ *  - the reader is `URLSearchParams`, which is form-urlencoded: it takes `&` as the end of the
+ *    pair, `+` as a space, and `%XX` as an escape.
+ *
+ * So a value needs the encoder exactly when it carries whitespace, `#`, `&`, `+`, or a `%` that
+ * begins a valid escape. A `/`, a dot segment, an `=` after the first one, a lone `%` and non-ASCII
+ * all pass both rules untouched. That is why hand-joining the query in `stringifyRouteHref` reds
+ * some of these paths and not others, and why this file pins the two groups by behaviour instead
+ * of asserting one rule over a list of paths.
  */
-const ENCODING_LOAD_BEARING = ['src/my file.ts', 'a%2Fb.ts', 'a#b.ts']
-const ENCODING_NEUTRAL = ['docs/readme.md', '../etc/passwd', 'docs/日本語.md', '/logs/run.txt']
+const ENCODING_LOAD_BEARING = [
+  'src/my file.ts',
+  'a%2Fb.ts',
+  'a#b.ts',
+  // `+` decodes to a space and `&` ends the pair, so both come back as a different path entirely.
+  'a+b.ts',
+  'a&b.ts',
+  // Whitespace is whitespace to the pattern, so this one is refused rather than altered.
+  'a\nb.ts'
+]
+const ENCODING_NEUTRAL = [
+  'docs/readme.md',
+  '../etc/passwd',
+  'docs/日本語.md',
+  '/logs/run.txt',
+  // Only the first `=` splits the pair, and a `%` that begins no valid escape is left alone.
+  'a=b.ts',
+  'a%b.ts'
+]
 const HAZARD_PATHS = [...ENCODING_LOAD_BEARING, ...ENCODING_NEUTRAL]
 
 /** The path as the other side reads it back out of the query it arrived in. */

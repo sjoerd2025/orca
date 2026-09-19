@@ -25,9 +25,15 @@ export type MobileFilePreviewBack = {
  *
  * Hardware back is registered natively only. React Native Web's `BackHandler.addEventListener`
  * logs "BackHandler is not supported on web and should not be used." and returns an inert
- * subscription, so on web this guard never armed regardless; skipping it drops the console error
- * and states the degradation instead of hiding it. Android back inside the page therefore pops the
- * native stack without this prompt — the page's own Back control is where the prompt lives.
+ * subscription, so on web this guard never armed regardless, and skipping it states the
+ * degradation instead of hiding it. Android back inside the page therefore pops the native stack
+ * without this prompt — the page's own Back control is where the prompt lives.
+ *
+ * Skipping it here does not keep that line off the console on its own: `mounted-bottom-drawer.tsx`
+ * registered one of its own whenever a drawer was visible and interactive, so the prompt opening
+ * put it there anyway. That registration is platform-gated now too, at the drawer, which is where
+ * it belongs; the files render check holds both by asserting the line's absence after the prompt
+ * is open.
  */
 export function useMobileFilePreviewBack(options: {
   hasUnsavedDraft: boolean
