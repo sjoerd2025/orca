@@ -11,15 +11,15 @@ import { describe, expect, it } from 'vitest'
 const MOBILE_ROOT = join(import.meta.dirname, '..', '..')
 const FLAG_KEY = 'orca:mobileWebShellEnabled'
 const DEFINITION = 'src/storage/preferences.ts'
-/** The one product reader. Every route that can stand the shell in for a screen asks it, and the
- *  list below is the whole census: one entry per screen a domain series has moved to the page. */
+/** The one product reader. Every route asks it, so the list below stays the whole census. */
 const FLAG_HOOK = 'src/mobile-web-shell/use-mobile-web-shell-enabled.ts'
 const ROUTE = 'app/h/[hostId]/web.tsx'
 const HOST_ROUTE = 'app/h/[hostId]/index.tsx'
-const FILES_ROUTES = [
-  'app/h/[hostId]/files/[worktreeId].tsx',
-  'app/h/[hostId]/files/preview/[worktreeId].tsx'
-]
+const AGENT_HISTORY_ROUTE = 'app/h/[hostId]/agent-history/[worktreeId].tsx'
+const FILES_ROUTE = 'app/h/[hostId]/files/[worktreeId].tsx'
+const FILES_PREVIEW_ROUTE = 'app/h/[hostId]/files/preview/[worktreeId].tsx'
+/** One entry per screen the flag can switch to the page, which is what a review reads. */
+const SWITCHED_ROUTES = [HOST_ROUTE, AGENT_HISTORY_ROUTE, FILES_ROUTE, FILES_PREVIEW_ROUTE]
 const DEVELOPER_ROW = 'src/diagnostics/mobile-web-shell-dev-row.tsx'
 /** Every tree that ships in the app bundle, with the floor each must clear. `modules` is two files,
  *  but it is where the native view lives and so the easiest place for a second reader to hide. */
@@ -58,8 +58,7 @@ describe('who touches the hybrid shell flag', () => {
     expect(paths).toContain(DEFINITION)
     expect(paths).toContain(FLAG_HOOK)
     expect(paths).toContain(ROUTE)
-    expect(paths).toContain(HOST_ROUTE)
-    for (const route of FILES_ROUTES) {
+    for (const route of SWITCHED_ROUTES) {
       expect(paths).toContain(route)
     }
     expect(paths).toContain(DEVELOPER_ROW)
@@ -81,12 +80,14 @@ describe('who touches the hybrid shell flag', () => {
     )
   })
 
-  it('reaches only the routes a domain series has moved, through that hook', () => {
-    // The host route is the flip switch, so the flag decides what the main screen renders; the two
-    // files routes are C3's. Every entry is a screen with a native fallback behind it, and one that
-    // is not on this list is a place a dark feature could turn itself on.
+  it('reaches the switched routes through that hook and no others', () => {
+    // Each switched route is a screen the flag decides the renderer of, and one more is one more
+    // place a dark feature could turn itself on. The list grows once per domain series, in the PR
+    // that switches the route file to MobileWebShellScreen, and never as a side effect of anything
+    // else. A switched route is inert until MOBILE_WEB_PAGE_ROUTES lists it as well, so an entry
+    // here can land a PR ahead of that one.
     expect(filesContaining('useMobileWebShellEnabled')).toEqual(
-      [FLAG_HOOK, HOST_ROUTE, ROUTE, ...FILES_ROUTES].sort()
+      [FLAG_HOOK, ROUTE, ...SWITCHED_ROUTES].sort()
     )
   })
 
