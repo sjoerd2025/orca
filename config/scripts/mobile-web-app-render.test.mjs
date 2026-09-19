@@ -515,12 +515,11 @@ describeRender('the Route A page in a real browser', () => {
       }
     })
     expect(cspErrors).toEqual([])
-    // React Native Web's own refusal, and the whole of the gap: the screen's hardware-back guard
-    // never arms here, so Android back inside the page pops without the unsaved-draft prompt. Named
-    // rather than filtered out, so closing it is a change to this line.
-    expect(errors).toEqual([
-      'console.error: BackHandler is not supported on web and should not be used.'
-    ])
+    // Empty, and that is the point: React Native Web's BackHandler logs "not supported on web" for
+    // anyone who registers one, so this line is what proves the screen no longer does. Android back
+    // inside the page therefore pops the native stack without the unsaved-draft prompt, which lives
+    // on the page's own Back control.
+    expect(errors).toEqual([])
     // The title is the last segment of the path param, so this is also the proof the param
     // survived the round trip through `URLSearchParams` that `/` and the space go through.
     expect(text).toContain('readme.md')
