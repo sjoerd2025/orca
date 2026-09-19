@@ -53,5 +53,14 @@ export default function MobileFilePreviewRoute() {
   if (enabled !== true || !route.ok || shellRoute === null) {
     return native
   }
-  return <MobileWebShellScreen hostId={route.params.hostId} route={shellRoute} fallback={native} />
+  // Keyed on the route, for the reason the explorer beside it is: a host captures the grants its
+  // session was opened with, so only a remount drops the bridge the previous route opened.
+  return (
+    <MobileWebShellScreen
+      key={shellRoute.pathname}
+      hostId={route.params.hostId}
+      route={shellRoute}
+      fallback={native}
+    />
+  )
 }
