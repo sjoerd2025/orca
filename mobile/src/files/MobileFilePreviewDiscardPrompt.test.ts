@@ -11,6 +11,11 @@ vi.mock('react-native', () => ({
 
 import { MobileFilePreviewDiscardPrompt } from './MobileFilePreviewDiscardPrompt'
 
+/** The mocked react-native host tag, which `node.type` holds as a string the typings do not name. */
+function isTag(type: unknown, tag: string): boolean {
+  return type === tag
+}
+
 function render(onStay: () => void, onDiscard: () => void): ReactTestRenderer {
   let renderer: ReactTestRenderer | null = null
   act(() => {
@@ -24,7 +29,7 @@ function render(onStay: () => void, onDiscard: () => void): ReactTestRenderer {
 
 function press(renderer: ReactTestRenderer, accessibilityLabel: string): void {
   const pressable = renderer.root
-    .findAllByType('Pressable')
+    .findAll((node) => isTag(node.type, 'Pressable'))
     .find((node) => node.props.accessibilityLabel === accessibilityLabel)
   if (!pressable) {
     throw new Error(`no control labelled ${accessibilityLabel}`)
@@ -35,7 +40,9 @@ function press(renderer: ReactTestRenderer, accessibilityLabel: string): void {
 describe('the unsaved-draft prompt', () => {
   it('asks the question in the screen itself, where a no-op Alert asked nothing', () => {
     const renderer = render(vi.fn(), vi.fn())
-    const text = renderer.root.findAllByType('Text').map((node) => node.props.children)
+    const text = renderer.root
+      .findAll((node) => isTag(node.type, 'Text'))
+      .map((node) => node.props.children)
     expect(text).toContain('Discard unsaved edits?')
     expect(text).toContain('Stay')
     expect(text).toContain('Discard')

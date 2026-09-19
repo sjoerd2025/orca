@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const native = vi.hoisted(() => ({
   os: 'ios' as 'ios' | 'android' | 'web',
-  addEventListener: vi.fn(() => ({ remove: vi.fn() }))
+  addEventListener: vi.fn((_event: string, _handler: () => boolean) => ({ remove: vi.fn() }))
 }))
 
 vi.mock('react-native', () => ({
@@ -74,8 +74,12 @@ describe('leaving the file preview', () => {
   it('stays on the answer to stay', () => {
     const leave = vi.fn()
     render(true, leave)
-    act(() => held.back?.requestBack())
-    act(() => held.back?.stay())
+    act(() => {
+      held.back?.requestBack()
+    })
+    act(() => {
+      held.back?.stay()
+    })
     expect(held.back?.confirmingDiscard).toBe(false)
     expect(leave).not.toHaveBeenCalled()
   })
@@ -83,8 +87,12 @@ describe('leaving the file preview', () => {
   it('leaves once, on the answer to discard', () => {
     const leave = vi.fn()
     render(true, leave)
-    act(() => held.back?.requestBack())
-    act(() => held.back?.discard())
+    act(() => {
+      held.back?.requestBack()
+    })
+    act(() => {
+      held.back?.discard()
+    })
     expect(held.back?.confirmingDiscard).toBe(false)
     expect(leave).toHaveBeenCalledTimes(1)
   })
@@ -94,7 +102,9 @@ describe('leaving the file preview', () => {
     // offering to throw work away would be offering to throw away nothing.
     const leave = vi.fn()
     const renderer = render(true, leave)
-    act(() => held.back?.requestBack())
+    act(() => {
+      held.back?.requestBack()
+    })
     expect(held.back?.confirmingDiscard).toBe(true)
     act(() => {
       renderer.update(createElement(Screen, { hasUnsavedDraft: false, leave }))
